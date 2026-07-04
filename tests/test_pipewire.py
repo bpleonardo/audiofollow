@@ -134,12 +134,16 @@ FAKE_CGROUPS = {
 }
 
 
+async def fake_pactl_list(kind):
+    return FAKE_PACTL[kind]
+
+
 def _fake_portal_instance(pid):
     m = re.search(r'app-flatpak-.+-(\d+)\.scope', FAKE_CGROUPS.get(pid, ''))
     return m.group(1) if m else None
 
 
-class PipewireParserTests(unittest.TestCase):
+class PipewireParserTests(unittest.IsolatedAsyncioTestCase):
     """The one subprocess boundary (_pactl_list) and the two /proc reads
     (_ppid, portal_instance_from_cgroup) are monkeypatched here so every
     test runs against fixed, real-world-derived text with no live
@@ -147,53 +151,53 @@ class PipewireParserTests(unittest.TestCase):
     """
 
     def setUp(self):
-        pw._pactl_list = lambda kind: FAKE_PACTL[kind]
+        pw._pactl_list = fake_pactl_list
         pw._ppid = lambda pid: FAKE_PPIDS.get(pid)
         pw.portal_instance_from_cgroup = _fake_portal_instance
 
-    def test_list_sinks(self):
-        sinks = pw.list_sinks()
+    async def test_list_sinks(self):
+        sinks = await pw.list_sinks()
         self.assertEqual(sinks['lg tv (hdmi)'], 42)
         self.assertEqual(sinks['caixa de som'], 55)
 
-    def test_find_sink_id_exact_and_substring(self):
-        sinks = pw.list_sinks()
+    async def test_find_sink_id_exact_and_substring(self):
+        sinks = await pw.list_sinks()
         self.assertEqual(pw.find_sink_id(sinks, 'LG TV'), 42)
         self.assertIsNone(pw.find_sink_id(sinks, 'nonexistent'))
 
-    def test_native_client_matches_via_sec_pid(self):
+    async def test_native_client_matches_via_sec_pid(self):
         """Spotify: self-reported pid ("4") is sandbox-internal and wrong;
         matching must go through the kernel-verified pipewire.sec.pid."""
-        streams = pw.streams_for_window(4420)
+        streams = await pw.streams_for_window(4420)
         self.assertEqual(len(streams), 1)
         self.assertEqual(streams[0].index, 91)
         self.assertEqual(streams[0].app_name, 'Spotify')
 
-    def test_native_client_wrong_self_reported_pid_does_not_match(self):
-        self.assertEqual(pw.streams_for_window(4), [])
+    async def test_native_client_wrong_self_reported_pid_does_not_match(self):
+        self.assertEqual(await pw.streams_for_window(4), [])
 
-    def test_pulse_proxied_client_matches_via_ancestry(self):
+    async def test_pulse_proxied_client_matches_via_ancestry(self):
         """Brave: sec.pid is the pipewire-pulse daemon's own pid (useless);
         real pid (6676) is a child of the window's pid (6284), not equal."""
-        streams = pw.streams_for_window(6284)
+        streams = await pw.streams_for_window(6284)
         self.assertEqual(len(streams), 1)
         self.assertEqual(streams[0].index, 100)
         self.assertEqual(streams[0].app_name, 'Brave')
 
-    def test_pulse_daemon_pid_does_not_false_match_everything(self):
-        self.assertEqual(pw.streams_for_window(1514), [])
+    async def test_pulse_daemon_pid_does_not_false_match_everything(self):
+        self.assertEqual(await pw.streams_for_window(1514), [])
 
-    def test_flatpak_client_matches_via_portal_instance(self):
+    async def test_flatpak_client_matches_via_portal_instance(self):
         """Firefox flatpak: both sec.pid (daemon) and self-reported pid
         ("2", sandbox-internal) are useless; only the portal instance id
         shared between the client and the window's cgroup works."""
-        streams = pw.streams_for_window(24980)
+        streams = await pw.streams_for_window(24980)
         self.assertEqual(len(streams), 1)
         self.assertEqual(streams[0].index, 123)
         self.assertEqual(streams[0].app_name, 'Firefox')
 
-    def test_unrelated_pid_matches_nothing(self):
-        self.assertEqual(pw.streams_for_window(99999), [])
+    async def test_unrelated_pid_matches_nothing(self):
+        self.assertEqual(await pw.streams_for_window(99999), [])
 
 
 if __name__ == '__main__':
