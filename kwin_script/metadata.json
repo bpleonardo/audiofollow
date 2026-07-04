@@ -3,9 +3,10 @@
   "KPlugin": {
     "Id": "com.bpleonardo.audiofollow",
     "Name": "audiofollow",
-    "Description": "Notify audiofollow daemon on window move",
+    "Description": "Move an app's PipeWire audio stream to match the monitor its window is on (KDE Plasma / Wayland)",
+    "Description[pt_BR]": "Move um fluxo de áudio do PipeWire de um aplicativo para corresponder ao monitor em que sua janela está (KDE Plasma / Wayland)",
     "Version": "0.1.0",
-    "License": "MIT",
+    "License": "BSD-3-Clause",
     "Category": "Utilities",
     "Authors": [
       {
