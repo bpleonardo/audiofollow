@@ -1,0 +1,18 @@
+{
+  "KPackageStructure": "KWin/Script",
+  "KPlugin": {
+    "Id": "com.bpleonardo.audiofollow",
+    "Name": "audiofollow",
+    "Description": "Notify audiofollow daemon on window move",
+    "Version": "0.1.0",
+    "License": "MIT",
+    "Category": "Utilities",
+    "Authors": [
+      {
+        "Name": "Leonardo (bpleonardo)"
+      }
+    ]
+  },
+  "X-Plasma-API": "javascript",
+  "X-Plasma-MainScript": "contents/code/main.js"
+}

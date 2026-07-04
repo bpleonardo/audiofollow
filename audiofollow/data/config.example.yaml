@@ -1,0 +1,20 @@
+# Keys under `outputs` are KWin/Wayland output names (see
+# `audiofollow list-monitors`). Values are PipeWire sink names (see
+# `audiofollow list-sinks`) - substring match, so "TV" matches a sink
+# whose description is "LG TV (HDMI)".
+
+# Keys are KWin/Wayland output names (see `audiofollow list-monitors`).
+# Values are PipeWire sink names (see `audiofollow list-sinks`) - substring match,
+# so "TV" matches a sink whose description is "LG TV (HDMI)".
+outputs:
+  HDMI-A-1: TV
+  DP-1: Speakers
+
+# Keys are KWin/Wayland application names that will be ignored by audiofollow.
+# You can look at the logs to see what the application names are.
+ignore:
+  - plasmashell
+  - krunner
+
+# Time in milliseconds to wait after a monitor change before switching audio.
+debounce_ms: 300

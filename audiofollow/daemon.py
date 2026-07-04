@@ -1,0 +1,129 @@
+# NOTE: deliberately no `from __future__ import annotations` here - dbus_next
+# reads the parameter type hints directly off the function signature to build
+# the D-Bus method signature (WindowMoved needs literal 'u'/'s', not the
+# stringified source text postponed evaluation would produce), so the
+# annotations below must stay real objects, not strings-of-source.
+
+import asyncio
+import logging
+from typing import TYPE_CHECKING
+from pathlib import Path
+
+from dbus_next.service import ServiceInterface, method
+from dbus_next.aio.message_bus import MessageBus
+
+from . import pipewire as pw
+
+if TYPE_CHECKING:
+    from .config import Config
+
+log = logging.getLogger('audiofollow')
+
+BUS_NAME = 'com.bpleonardo.audiofollow'
+BUS_PATH = '/Daemon'
+
+
+def _app_name(pid: int) -> str:
+    # ponytail: /proc is the whole "get process name" library, no psutil needed
+    try:
+        return Path(f'/proc/{pid}/comm').read_text().strip()
+    except OSError:
+        return f'pid:{pid}'
+
+
+class AudioFollowService(ServiceInterface):
+    def __init__(self, cfg: 'Config', *, dry_run: bool = False):
+        super().__init__(BUS_NAME)
+        self.cfg = cfg
+        self.dry_run = dry_run
+        self._timers: dict[int, asyncio.TimerHandle] = {}
+        self._last_screen: dict[int, str] = {}
+
+    @method()
+    def WindowMoved(self, pid: 'i', screen: 's'):  # type: ignore # noqa: F821
+        pid = int(pid)
+        if self._last_screen.get(pid) == screen:
+            return
+        self._last_screen[pid] = screen
+
+        old = self._timers.pop(pid, None)
+        if old:
+            old.cancel()
+        loop = asyncio.get_event_loop()
+        self._timers[pid] = loop.call_later(
+            self.cfg.debounce_ms / 1000,
+            lambda: asyncio.create_task(self._resolve(pid, screen)),
+        )
+
+    async def _resolve(self, pid: int, screen: str) -> None:  # noqa: C901
+        self._timers.pop(pid, None)
+        name = _app_name(pid)
+
+        if name in self.cfg.ignore:
+            log.debug('Ignoring %s (pid %d)', name, pid)
+            return
+
+        sink_name = self.cfg.outputs.get(screen)
+        if not sink_name:
+            log.warning('No sink configured for output %s', screen)
+            return
+
+        try:
+            sinks = pw.list_sinks()
+        except Exception:
+            log.exception('pactl list sinks failed: %s')
+            return
+
+        target_id = pw.find_sink_id(sinks, sink_name)
+        if target_id is None:
+            log.warning("Sink '%s' not found (unplugged?)", sink_name)
+            return
+
+        try:
+            streams = pw.streams_for_window(pid)
+        except Exception:
+            log.exception('pactl list sink-inputs failed: %s')
+            return
+
+        if not streams:
+            log.debug('No active audio stream for %s (pid %d)', name, pid)
+            return
+
+        sink_name_by_id = {v: k for k, v in sinks.items()}
+        for stream in streams:
+            if stream.sink == target_id:
+                continue  # already there.
+
+            log.info('Window %s moved to %s', name, screen)
+            log.info('Matched PID %d', pid)
+            log.info('Matched stream %d', stream.index)
+
+            old_sink = sink_name_by_id.get(stream.sink, '?')
+            if self.dry_run:
+                log.info(
+                    '[dry-run] Moving stream %d: %s -> %s',
+                    stream.index,
+                    old_sink,
+                    sink_name,
+                )
+                continue
+
+            log.info('Moving stream %d', stream.index)
+            log.info('%s -> %s', old_sink, sink_name)
+            try:
+                pw.move_stream(stream.index, target_id)
+            except Exception:
+                log.exception('Failed to move stream %d', stream.index)
+
+
+async def run(cfg: 'Config', *, dry_run: bool = False) -> None:
+    service = AudioFollowService(cfg, dry_run=dry_run)
+
+    bus = await MessageBus().connect()
+    bus.export(BUS_PATH, service)
+
+    await bus.request_name(BUS_NAME)
+
+    log.info('audiofollow ready, listening on dbus %s', BUS_NAME)
+
+    await asyncio.Event().wait()  # block forever, zero CPU while idle
