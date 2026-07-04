@@ -6,11 +6,12 @@
 # Keys are KWin/Wayland output names (see `audiofollow list-monitors`).
 # Values are PipeWire sink names (see `audiofollow list-sinks`) - substring match,
 # so "TV" matches a sink whose description is "LG TV (HDMI)".
+# You can also specify a sink by its name, e.g. "alsa_output.pci-0000_00_1b.0.analog-stereo".
 outputs:
   HDMI-A-1: TV
   DP-1: Speakers
 
-# Keys are KWin/Wayland application names that will be ignored by audiofollow.
+# Keys are KWin/Wayland application names that will be ignored by the application.
 # You can look at the logs to see what the application names are.
 ignore:
   - plasmashell
