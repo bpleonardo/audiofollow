@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import os
 import asyncio
-import logging
 import argparse
 import subprocess
 from pathlib import Path
 from importlib.resources import files as resource_files
 
 from . import pipewire as pw
+from .utils import setup_logging
 from .config import load_config
 from .daemon import run
 
@@ -85,10 +85,7 @@ def main() -> None:
 
     args = p.parse_args()
 
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
-        format='%(asctime)s %(levelname)-7s %(message)s',
-    )
+    setup_logging(verbose=args.verbose)
 
     if args.command == 'list-sinks':
         _list_sinks()

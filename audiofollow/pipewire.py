@@ -32,9 +32,12 @@ different strategies, not one, learned from three real failures in a row:
 from __future__ import annotations
 
 import re
+import logging
 import subprocess
 from pathlib import Path
 from dataclasses import dataclass
+
+log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -168,15 +171,22 @@ def streams_for_window(window_pid: int) -> list[Stream]:
     clients = _client_infos()
 
     if portal_instance:
+        log.debug(
+            'Window pid %d is flatpak, matching on portal instance %s',
+            window_pid,
+            portal_instance,
+        )
         matching_clients = {
             idx for idx, c in clients.items() if c.portal_instance == portal_instance
         }
     else:
+        log.debug('Window pid %d is not flatpak, matching on pid/ancestry', window_pid)
         matching_clients = {
             idx
             for idx, c in clients.items()
             if c.pid is not None and _is_pid_or_descendant(c.pid, window_pid)
         }
+
     if not matching_clients:
         return []
 
