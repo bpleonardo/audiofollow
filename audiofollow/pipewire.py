@@ -33,9 +33,10 @@ from __future__ import annotations
 
 import re
 import logging
-import subprocess
 from pathlib import Path
 from dataclasses import dataclass
+
+from .utils import sp_run
 
 log = logging.getLogger(__name__)
 
@@ -53,16 +54,15 @@ class _ClientInfo:
     portal_instance: str | None
 
 
-def _pactl_list(kind: str) -> str:
-    out = subprocess.run(
+async def _pactl_list(kind: str) -> str:
+    return await sp_run(
         ['pactl', 'list', kind], capture_output=True, text=True, timeout=5, check=True
     )
-    return out.stdout
 
 
-def list_sinks() -> dict[str, int]:
+async def list_sinks() -> dict[str, int]:
     """name/description (lowercased) -> pactl sink index, for every sink."""
-    text = _pactl_list('sinks')
+    text = await _pactl_list('sinks')
     sinks: dict[str, int] = {}
     for m in re.finditer(
         r'^Sink #(\d+)\n(.*?)(?=^Sink #\d+|\Z)', text, re.MULTILINE | re.DOTALL
@@ -100,13 +100,13 @@ def portal_instance_from_cgroup(pid: int) -> str | None:
     return m.group(1) if m else None
 
 
-def _client_infos() -> dict[int, _ClientInfo]:
+async def _client_infos() -> dict[int, _ClientInfo]:
     """pactl client index -> (real pid or None, portal instance id or None).
 
     See module docstring for why both fields exist and why neither one
     alone is enough.
     """
-    text = _pactl_list('clients')
+    text = await _pactl_list('clients')
     clients: dict[int, _ClientInfo] = {}
     for m in re.finditer(
         r'^Client #(\d+)\n(.*?)(?=^Client #\d+|\Z)', text, re.MULTILINE | re.DOTALL
@@ -158,7 +158,7 @@ def _is_pid_or_descendant(pid: int, window_pid: int, max_depth: int = 32) -> boo
     return False
 
 
-def streams_for_window(window_pid: int) -> list[Stream]:
+async def streams_for_window(window_pid: int) -> list[Stream]:
     """All sink-inputs belonging to the app that owns `window_pid`.
 
     If the window belongs to a flatpak app, matching goes through the
@@ -168,7 +168,7 @@ def streams_for_window(window_pid: int) -> list[Stream]:
     pid/ancestry matching.
     """
     portal_instance = portal_instance_from_cgroup(window_pid)
-    clients = _client_infos()
+    clients = await _client_infos()
 
     if portal_instance:
         log.debug(
@@ -190,7 +190,7 @@ def streams_for_window(window_pid: int) -> list[Stream]:
     if not matching_clients:
         return []
 
-    text = _pactl_list('sink-inputs')
+    text = await _pactl_list('sink-inputs')
     result = []
     for m in re.finditer(
         r'^Sink Input #(\d+)\n(.*?)(?=^Sink Input #\d+|\Z)',
@@ -213,15 +213,22 @@ def streams_for_window(window_pid: int) -> list[Stream]:
     return result
 
 
-def move_stream(stream_index: int, sink_index: int) -> None:
+async def move_stream(stream_index: int, sink_index: int) -> None:
     """Move a running sink-input to a different sink.
 
     Both ids are pactl indices (see module docstring) - both callers of
     this function must come from list_sinks()/streams_for_window() above,
     never from pw-dump.
     """
-    subprocess.run(
-        ['pactl', 'move-sink-input', str(stream_index), str(sink_index)],
-        check=True,
-        timeout=5,
+    log.debug(
+        'pactl move-sink-input %d %d (%s)',
+        stream_index,
+        sink_index,
+        await sp_run(
+            ['pactl', 'move-sink-input', str(stream_index), str(sink_index)],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ),
     )

@@ -77,7 +77,7 @@ class AudioFollowService(ServiceInterface):
             return
 
         try:
-            sinks = pw.list_sinks()
+            sinks = await pw.list_sinks()
         except Exception:
             log.exception('pactl list sinks failed')
             return
@@ -88,7 +88,7 @@ class AudioFollowService(ServiceInterface):
             return
 
         try:
-            streams = pw.streams_for_window(pid)
+            streams = await pw.streams_for_window(pid)
         except Exception:
             log.exception('pactl list sink-inputs failed')
             return
@@ -122,7 +122,7 @@ class AudioFollowService(ServiceInterface):
 
             log.info('Moving stream %d (%s -> %s)', stream.index, old_sink, sink_name)
             try:
-                pw.move_stream(stream.index, target_id)
+                await pw.move_stream(stream.index, target_id)
             except Exception:
                 log.exception('Failed to move stream %d', stream.index)
 

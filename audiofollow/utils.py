@@ -1,4 +1,8 @@
+import asyncio
 import logging
+import contextlib
+import subprocess
+from typing import Sequence
 
 try:
     import rich
@@ -23,3 +27,31 @@ def setup_logging(*, verbose: bool = False) -> None:
         )
     else:
         logging.basicConfig(level=level, format=SIMPLE_LOG_FORMAT)
+
+
+async def sp_run(
+    cmd: Sequence[str],
+    *,
+    capture_output: bool = True,
+    check: bool = True,
+    text: bool = False,
+    timeout: float | None = None,  # noqa: ASYNC109
+):
+    cm = asyncio.timeout(timeout) if timeout is not None else contextlib.nullcontext()
+
+    proc = await asyncio.create_subprocess_exec(
+        *cmd, stdout=subprocess.PIPE if capture_output else None
+    )
+
+    stdout = None
+
+    async with cm:
+        if capture_output:
+            stdout, _ = await proc.communicate()
+        else:
+            await proc.wait()
+
+    if check and proc.returncode != 0:
+        raise subprocess.CalledProcessError(proc.returncode, cmd, output=stdout)
+
+    return stdout.decode('utf-8') if text and stdout is not None else stdout
