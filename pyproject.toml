@@ -1,20 +1,22 @@
-[build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "audiofollow"
-version = "0.1.0"
 description = "Move an app's PipeWire audio stream to match the monitor its window is on (KDE Plasma / Wayland)"
+author = ["Leonardo"]
+license = "BSD-3-Clause"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-dependencies = ["PyYAML>=6.0", "dbus-next>=0.2.3"]
+dependencies = ["PyYAML>=6.0", "dbus-next>=0.2.0"]
+dynamic = ["version"]
+
+[tool.hatch.version]
+path = "audiofollow/__init__.py"
 
 [project.scripts]
 audiofollow = "audiofollow.cli:main"
 
-[tool.setuptools.packages.find]
-include = ["audiofollow"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools.package-data]
-audiofollow = ["data/*"]
+[tool.hatch.build.targets.wheel]
+packages = ["audiofollow"]
+include = ["audiofollow/data/*"]
