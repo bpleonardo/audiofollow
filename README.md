@@ -18,7 +18,7 @@ Two pieces:
 
 If you are on an Arch-based distribution, you can install from the prebuilt package.
 
-1. Download the latest release from the [releases page](https://github.com/bpleonardo/audiofollow/releases) (audiofollow-<version>-any.pkg.tar.zst).
+1. Download the latest release from the [releases page](https://github.com/bpleonardo/audiofollow/releases) (audiofollow-\<version\>-any.pkg.tar.zst).
 
 2. Install the package with `pacman`:
 
