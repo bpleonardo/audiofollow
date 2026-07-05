@@ -226,15 +226,10 @@ async def move_stream(stream_index: int, sink_index: int) -> None:
     Both ids are pactl indices (see module docstring) - both must come from list_sinks()/streams_for_window() above,
     never from pw-dump.
     """
-    log.debug(
-        'pactl move-sink-input %d %d (%s)',
-        stream_index,
-        sink_index,
-        await sp_run(
-            ['pactl', 'move-sink-input', str(stream_index), str(sink_index)],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        ),
+    await sp_run(
+        ['pactl', 'move-sink-input', str(stream_index), str(sink_index)],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=5,
     )
