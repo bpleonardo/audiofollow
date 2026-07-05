@@ -1,0 +1,65 @@
+pkgname=audiofollow
+_kwin_id=com.bpleonardo.audiofollow
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Move app audio to the sink of the monitor its window is on."
+arch=(any)
+url="https://github.com/bpleonardo/audiofollow"
+license=(BSD-3-Clause)
+depends=(
+  dbus
+  python
+  libpulse
+  python-yaml
+  python-rich
+  python-dbus-next
+)
+optdepends=(
+  "kwin: plasma integration"
+)
+makedepends=(
+  git
+  python-build
+  python-hatchling
+  python-installer
+)
+install="pacman-hooks.install"
+source=("$pkgname::git+https://github.com/bpleonardo/audiofollow.git#tag=v$pkgver")
+sha256sums=("4e5b29300789a088d83231781eed6732ba0d92de8b2308dfb01d56adb91b3779")
+sha512sums=("d4324de469a7a53ed5252b2b333950a7a98637d4d787c55f007db7eb572fa5af9273674fa24e6751413c7c60a13151bed9920c6347fc75366dd5c1a368a220f8")
+
+build() {
+  cd "$pkgname"
+
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$pkgname"
+
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  # systemd user service
+  install -vDm644 "resources/systemd/unit.service" \
+    "$pkgdir/usr/lib/systemd/user/$pkgname.service"
+
+  # kwin script
+  install -vDm644 "kwin_script/metadata.json" \
+    "$pkgdir/usr/share/kwin/scripts/$_kwin_id/metadata.json"
+
+  install -vDm644 "kwin_script/contents/code/main.js" \
+    "$pkgdir/usr/share/kwin/scripts/$_kwin_id/contents/code/main.js"
+
+  # docs
+  install -vDm644 LICENSE \
+    "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+  install -vDm644 README.md \
+    "$pkgdir/usr/share/doc/$pkgname/README.md"
+}
+
+check() {
+  cd "$pkgname"
+
+  python -m unittest tests/test_pipewire.py
+}

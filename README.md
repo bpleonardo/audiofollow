@@ -14,7 +14,37 @@ Two pieces:
 
 ## Installing and running
 
-<!-- TODO: add pacman instructions -->
+### Arch Linux
+
+If you are on an Arch-based distribution, you can install from the prebuilt package.
+
+1. Download the latest release from the [releases page](https://github.com/bpleonardo/audiofollow/releases) (audiofollow-<version>-any.pkg.tar.zst).
+
+2. Install the package with `pacman`:
+
+```bash
+\# pacman -U audiofollow-<version>-any.pkg.tar.zst
+```
+
+3. Enable the KWin script and the systemd user service:
+
+```bash
+$ kwriteconfig6 --file kwinrc --group Plugins --key com.bpleonardo.audiofollowEnabled true
+$ qdbus6 org.kde.KWin /KWin reconfigure
+
+$ systemctl --user enable audiofollow.service
+```
+
+4. Generate the configuration file and edit it to your liking:
+
+```bash
+$ audiofollow --gen-config
+$ vi ~/.config/audiofollow/config.yaml # or your favorite editor
+```
+
+5. Log out and back in to restart KWin and start the daemon.
+
+6. **Now drag a window around and its audio should follow it to the output that has the most overlap with it!**
 
 ### Manual installation
 
@@ -36,6 +66,7 @@ $ pip install .
 ```bash
 $ kpackagetool6 --type KWin/Script -i kwin_script/
 $ kwriteconfig6 --file kwinrc --group Plugins --key com.bpleonardo.audiofollowEnabled true
+$ qdbus6 org.kde.KWin /KWin reconfigure
 ```
 
 4. Generate the configuration file and edit it to your liking:
