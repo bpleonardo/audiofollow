@@ -8,10 +8,7 @@ from shutil import which
 from pathlib import Path
 from importlib.resources import files as resource_files
 
-try:
-    from rich.console import Console
-except ImportError:
-    Console = None
+from rich.console import Console
 
 from . import pipewire as pw
 from .utils import setup_logging
@@ -26,28 +23,26 @@ DEFAULT_CONFIG = (
 
 
 async def _list_sinks() -> None:
+    console = Console()
+
     sinks = tuple((await pw.list_sinks()).keys())
     # Due to the way we query the sinks, they are returned in pairs of (description, name).
     mapping = {sinks[i + 1]: sinks[i] for i in range(0, len(sinks), 2)}
 
-    print(
-        "Here's a list of connected sinks. "
-        'You can use either the ID or the description in your config file.\n'
+    console.print(
+        "[bold blue]Here's a list of connected sinks. "
+        'You can use either the ID or the description in your config file.[/]\n'
     )
 
-    if Console:
-        console = Console()
-        for name, desc in mapping.items():
-            console.print(
-                f'[yellow bold]ID:[/] {name}\n[yellow bold]Description:[/] {desc.capitalize()}\n'
-            )
-    else:
-        for name, desc in mapping.items():
-            print(f'ID: {name}\nDescription: {desc.capitalize()}\n')
+    for name, desc in mapping.items():
+        console.print(
+            f'[bold yellow]ID:[/] {name}\n[bold yellow]Description:[/] {desc.capitalize()}\n'
+        )
 
 
 def _list_monitors() -> None:
-    print("Here's a list of connected monitors (outputs):\n")
+    console = Console()
+    console.print("[bold blue]Here's a list of connected monitors (outputs):[/]\n")
 
     if which('kscreen-doctor') is not None:
         out = subprocess.run(
@@ -58,17 +53,9 @@ def _list_monitors() -> None:
 
     # We don't have kscreen-doctor, fallback to filesystem inspection.
     monitors = Path('/sys/class/drm').glob('card*-*/status')
-    if Console:
-        console = Console()
-        for m in monitors:
-            if m.read_text().strip() == 'connected':
-                console.print(
-                    f'[yellow bold]Monitor:[/] {m.parent.name.split("-", 1)[1]}'
-                )
-    else:
-        for m in monitors:
-            if m.read_text().strip() == 'connected':
-                print(f'Monitor: {m.parent.name.split("-", 1)[1]}')
+    for m in monitors:
+        if m.read_text().strip() == 'connected':
+            console.print(f'[bold yellow]Monitor:[/] {m.parent.name.split("-", 1)[1]}')
 
 
 def _gen_config(config_path: Path) -> None:

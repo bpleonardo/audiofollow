@@ -4,21 +4,15 @@ import contextlib
 import subprocess
 from typing import Sequence
 
-try:
-    import rich
-    from rich.console import Console
-    from rich.logging import RichHandler
-except ImportError:
-    rich = None
-    Console = None
-    RichHandler = None
+from rich.console import Console
+from rich.logging import RichHandler
 
 SIMPLE_LOG_FORMAT = '[%(asctime)s] [%(levelname)-7s] %(name)s: %(message)s'
 
 
 def setup_logging(*, verbose: bool = False) -> None:
     level = logging.DEBUG if verbose else logging.INFO
-    if rich and Console().color_system is not None:
+    if Console().color_system is not None:
         logging.basicConfig(
             level=level,
             format='%(message)s',

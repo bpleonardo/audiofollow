@@ -4,7 +4,7 @@ description = "Move an app's PipeWire audio stream to match the monitor its wind
 author = ["Leonardo"]
 license = "BSD-3-Clause"
 requires-python = ">=3.11"
-dependencies = ["PyYAML>=6.0", "dbus-next>=0.2.0"]
+dependencies = ["PyYAML>=6.0", "dbus-next>=0.2.0", "rich>=15.0.0"]
 dynamic = ["version"]
 
 [tool.hatch.version]
