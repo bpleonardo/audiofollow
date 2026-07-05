@@ -45,20 +45,6 @@ def _gen_config(config_path: Path) -> None:
         new.write(orig.read())
 
 
-def _install_service() -> None:
-    install_path = (
-        Path(os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config/')))
-        / 'systemd'
-        / 'user'
-        / 'audiofollow.service'
-    )
-
-    unit = resource_files('audiofollow').joinpath('data/audiofollow.service')
-
-    with open(unit, 'r') as orig, open(install_path, 'w') as new:
-        new.write(orig.read())
-
-
 def main() -> None:
     p = argparse.ArgumentParser(prog='audiofollow')
     p.add_argument(
@@ -77,11 +63,6 @@ def main() -> None:
     sub.add_parser('list-sinks', help='List available audio sinks.')
     sub.add_parser('list-monitors', help='List available monitors (outputs).')
     sub.add_parser('gen-config', help='Generate a default config file and exit.')
-    sub.add_parser(
-        'install-service',
-        help='Install the systemd user service and exit. '
-        'This is not needed if you install audiofollow as a system package.',
-    )
 
     args = p.parse_args()
 
@@ -95,9 +76,6 @@ def main() -> None:
         return
     if args.command == 'gen-config':
         _gen_config(args.config)
-        return
-    if args.command == 'install-service':
-        _install_service()
         return
 
     if not args.config.exists():
