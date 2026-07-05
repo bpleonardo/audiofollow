@@ -60,7 +60,7 @@ $ systemctl --user enable audiofollow.service
 ## Notes
 
 - I've observed that sometimes the daemon will fail to move a stream if the window is moved too quickly. This is likely a race condition but I haven't been able to reproduce it reliably, if this happens, re-move the window to the desired output and it should work. Please report any issues you encounter on the issue tracker. See below if it happens consistently with all windows, or with a specific app.
-- If you move a window and the audio doesn't follow, check both the daemon and KWin script logs for errors. The KWin script can be viewed with `journalctl --user -u plasma-kwin_wayland.service --follow` (check logs beggining with `audiofollow: `) and the daemon with `journalctl --user -u audiofollow.service --follow`. If you can't figure out the problem, please open an issue on the issue tracker with the logs attached.
+- If you move a window and the audio doesn't follow, check both the daemon and KWin script logs for errors. The KWin script can be viewed with `journalctl --user -u plasma-kwin_wayland.service --follow` (check logs beginning with `audiofollow: `) and the daemon with `journalctl --user -u audiofollow.service --follow`. If you can't figure out the problem, please open an issue on the issue tracker with the logs attached.
 - The daemon parses the output of `pactl list *` commands, which may change in future versions of libpulse. If the program stops working after a system update, please check the issue tracker for any reports of this and/or open a new issue. I use a rolling release distro, so by the time you notice it there may already be a fix in the repo.
 
 ## License
