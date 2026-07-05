@@ -23,7 +23,7 @@ If you are on an Arch-based distribution, you can install from the prebuilt pack
 2. Install the package with `pacman`:
 
 ```bash
-\# pacman -U audiofollow-<version>-any.pkg.tar.zst
+$ sudo pacman -U audiofollow-<version>-any.pkg.tar.zst
 ```
 
 3. Enable the KWin script and the systemd user service:
