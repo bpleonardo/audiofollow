@@ -53,7 +53,7 @@ function notify(window) {
   if (lastOutput[window.pid] === screen.name) {
     return;
   } else {
-    console.debug(`${window.pid} changed screens.`);
+    console.debug(`audiofollow: ${window.pid} changed screens.`);
   }
   lastOutput[window.pid] = screen.name;
 
