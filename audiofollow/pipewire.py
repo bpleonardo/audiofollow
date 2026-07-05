@@ -1,4 +1,5 @@
-"""PipeWire access entirely through pactl (its pipewire-pulse compat layer).
+"""
+PipeWire access entirely through pactl (its pipewire-pulse compat layer).
 
 Matching a window to its audio stream turned out to need two entirely
 different strategies, not one, learned from three real failures in a row:
@@ -41,14 +42,14 @@ from .utils import sp_run
 log = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class Stream:
     index: int  # pactl sink-input index - same id space move_stream expects
     app_name: str
     sink: int | None  # pactl sink index this stream is currently on
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class _ClientInfo:
     pid: int | None
     portal_instance: str | None
@@ -76,6 +77,7 @@ async def list_sinks() -> dict[str, int]:
 
 
 def find_sink_id(sinks: dict[str, int], configured_name: str) -> int | None:
+    """Find a sink index by name or description, case-insensitive."""
     target = configured_name.lower()
     if target in sinks:
         return sinks[target]
@@ -86,7 +88,8 @@ def find_sink_id(sinks: dict[str, int], configured_name: str) -> int | None:
 
 
 def portal_instance_from_cgroup(pid: int) -> str | None:
-    """Flatpak's portal instance id, read from a process's own cgroup path.
+    """
+    Flatpak's portal instance id, read from a process's own cgroup path.
 
     Path looks like .../app-flatpak-org.mozilla.firefox-2971616599.scope -
     the trailing digits before .scope are the instance id. None for a
@@ -101,7 +104,8 @@ def portal_instance_from_cgroup(pid: int) -> str | None:
 
 
 async def _client_infos() -> dict[int, _ClientInfo]:
-    """pactl client index -> (real pid or None, portal instance id or None).
+    """
+    pactl client index -> (real pid or None, portal instance id or None).
 
     See module docstring for why both fields exist and why neither one
     alone is enough.
@@ -142,7 +146,8 @@ def _ppid(pid: int) -> int | None:
 
 
 def _is_pid_or_descendant(pid: int, window_pid: int, max_depth: int = 32) -> bool:
-    """True if `pid` is `window_pid` or a child/grandchild/... of it.
+    """
+    True if `pid` is `window_pid` or a child/grandchild/... of it.
 
     Needed because multi-process apps (every Chromium/Firefox-based
     browser) put the window in one process and the audio stream in a
@@ -159,7 +164,8 @@ def _is_pid_or_descendant(pid: int, window_pid: int, max_depth: int = 32) -> boo
 
 
 async def streams_for_window(window_pid: int) -> list[Stream]:
-    """All sink-inputs belonging to the app that owns `window_pid`.
+    """
+    All sink-inputs belonging to the app that owns `window_pid`.
 
     If the window belongs to a flatpak app, matching goes through the
     portal instance id (see module docstring) instead of any pid at all -
@@ -214,10 +220,10 @@ async def streams_for_window(window_pid: int) -> list[Stream]:
 
 
 async def move_stream(stream_index: int, sink_index: int) -> None:
-    """Move a running sink-input to a different sink.
+    """
+    Move a running sink-input to a different sink.
 
-    Both ids are pactl indices (see module docstring) - both callers of
-    this function must come from list_sinks()/streams_for_window() above,
+    Both ids are pactl indices (see module docstring) - both must come from list_sinks()/streams_for_window() above,
     never from pw-dump.
     """
     log.debug(

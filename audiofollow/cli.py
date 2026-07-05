@@ -60,7 +60,7 @@ def _list_monitors() -> None:
 
 def _gen_config(config_path: Path) -> None:
     if config_path.exists():
-        raise SystemExit(f'Config file already exists at {config_path}')
+        raise SystemExit(f"Config file already exists at '{config_path}'")
 
     config = resource_files('audiofollow').joinpath('data/config.example.yaml')
 
@@ -105,7 +105,7 @@ def main() -> None:
 
     if not args.config.exists():
         raise SystemExit(
-            f'No config at {args.config}. Run `audiofollow gen-config` to generate one.'
+            f"No config at '{args.config}'. Run `audiofollow gen-config` to generate one."
         )
 
     cfg = load_config(args.config)

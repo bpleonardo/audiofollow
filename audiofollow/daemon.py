@@ -1,6 +1,6 @@
 # NOTE: deliberately no `from __future__ import annotations` here - dbus_next
 # reads the parameter type hints directly off the function signature to build
-# the D-Bus method signature (WindowMoved needs literal 'u'/'s', not the
+# the D-Bus method signature (WindowMoved needs literal 'i'/'s', not the
 # stringified source text postponed evaluation would produce), so the
 # annotations below must stay real objects, not strings-of-source.
 
@@ -24,7 +24,6 @@ BUS_PATH = '/Daemon'
 
 
 def _app_name(pid: int) -> str:
-    # ponytail: /proc is the whole "get process name" library, no psutil needed
     try:
         return Path(f'/proc/{pid}/comm').read_text().strip()
     except OSError:
