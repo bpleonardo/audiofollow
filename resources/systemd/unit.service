@@ -1,0 +1,11 @@
+[Unit]
+Description=Move app audio to the sink of the monitor its window is on
+After=graphical-session.target pipewire.service
+
+[Service]
+ExecStart=audiofollow
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
