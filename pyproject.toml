@@ -4,7 +4,11 @@ description = "Move an app's PipeWire audio stream to match the monitor its wind
 author = ["Leonardo"]
 license = "BSD-3-Clause"
 requires-python = ">=3.11"
-dependencies = ["PyYAML>=6.0", "dbus-next>=0.2.0", "rich>=15.0.0"]
+dependencies = [
+    "PyYAML>=6.0",
+    "dbus-fast>=5.0.0",
+    "rich>=15.0.0",
+]
 dynamic = ["version"]
 
 [tool.hatch.version]
@@ -17,6 +21,15 @@ audiofollow = "audiofollow.cli:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+dev = ["audiofollow"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["audiofollow"]
 include = ["audiofollow/data/*"]
+
+[tool.uv.workspace]
+members = ["."]
+
+[tool.uv.sources]
+audiofollow = { workspace = true }

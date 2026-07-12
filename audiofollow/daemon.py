@@ -1,16 +1,13 @@
-# NOTE: deliberately no `from __future__ import annotations` here - dbus_next
-# reads the parameter type hints directly off the function signature to build
-# the D-Bus method signature (WindowMoved needs literal 'i'/'s', not the
-# stringified source text postponed evaluation would produce), so the
-# annotations below must stay real objects, not strings-of-source.
+from __future__ import annotations
 
 import asyncio
 import logging
 from typing import TYPE_CHECKING
 from pathlib import Path
 
-from dbus_next.service import ServiceInterface, method
-from dbus_next.aio.message_bus import MessageBus
+from dbus_fast.aio import MessageBus
+from dbus_fast.service import ServiceInterface, dbus_method
+from dbus_fast.annotations import DBusStr, DBusInt32
 
 from . import pipewire as pw
 
@@ -38,8 +35,8 @@ class AudioFollowService(ServiceInterface):
         self._timers: dict[int, asyncio.TimerHandle] = {}
         self._last_screen: dict[int, str] = {}
 
-    @method()
-    def WindowMoved(self, pid: 'i', screen: 's'):  # type: ignore # noqa: F821
+    @dbus_method()
+    def WindowMoved(self, pid: DBusInt32, screen: DBusStr):
         pid = int(pid)
         if self._last_screen.get(pid) == screen:
             return
