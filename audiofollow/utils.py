@@ -30,7 +30,7 @@ async def sp_run(
     capture_output: bool = True,
     check: bool = True,
     text: bool = False,
-    timeout: float | None = None,  # noqa: ASYNC109
+    timeout: float | None = None,
 ):
     """Run a subprocess command asynchronously, with optional output capture and timeout."""
     cm = asyncio.timeout(timeout) if timeout is not None else contextlib.nullcontext()
