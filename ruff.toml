@@ -4,6 +4,7 @@ output-format = "grouped"
 
 [lint]
 select = [
+    "ANN",
     "ASYNC",
     "BLE",
     "FBT",
@@ -32,6 +33,7 @@ select = [
     "E9",
 ]
 ignore = ["S101", "SIM105"]
+preview = true
 
 [lint.flake8-quotes]
 inline-quotes = "single"

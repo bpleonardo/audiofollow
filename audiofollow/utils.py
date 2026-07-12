@@ -61,9 +61,9 @@ async def sp_run(
 async def sp_run(
     cmd: Sequence[str],
     *,
-    capture_output=False,
-    check=True,
-    text=False,
+    capture_output: bool = False,
+    check: bool = True,
+    text: bool = False,
     timeout: float | None = None,
 ) -> None: ...
 

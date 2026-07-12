@@ -28,7 +28,7 @@ def _app_name(pid: int) -> str:
 
 
 class AudioFollowService(ServiceInterface):
-    def __init__(self, cfg: Config, *, dry_run: bool = False):
+    def __init__(self, cfg: Config, *, dry_run: bool = False) -> None:
         super().__init__(BUS_NAME)
         self.cfg = cfg
         self.dry_run = dry_run
@@ -36,7 +36,7 @@ class AudioFollowService(ServiceInterface):
         self._last_screen: dict[int, str] = {}
 
     @dbus_method()
-    def WindowMoved(self, pid: DBusInt32, screen: DBusStr):
+    def WindowMoved(self, pid: DBusInt32, screen: DBusStr) -> None:
         pid = int(pid)
         if self._last_screen.get(pid) == screen:
             return
