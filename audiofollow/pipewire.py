@@ -229,7 +229,5 @@ async def move_stream(stream_index: int, sink_index: int) -> None:
     await sp_run(
         ['pactl', 'move-sink-input', str(stream_index), str(sink_index)],
         check=True,
-        capture_output=True,
-        text=True,
         timeout=5,
     )

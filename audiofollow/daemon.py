@@ -28,7 +28,7 @@ def _app_name(pid: int) -> str:
 
 
 class AudioFollowService(ServiceInterface):
-    def __init__(self, cfg: 'Config', *, dry_run: bool = False):
+    def __init__(self, cfg: Config, *, dry_run: bool = False):
         super().__init__(BUS_NAME)
         self.cfg = cfg
         self.dry_run = dry_run
@@ -106,7 +106,10 @@ class AudioFollowService(ServiceInterface):
                 stream.index,
             )
 
-            old_sink = sink_name_by_id.get(stream.sink, '?')
+            old_sink = '?'
+            if stream.sink:
+                old_sink = sink_name_by_id.get(stream.sink, '?')
+
             if self.dry_run:
                 log.info(
                     '[dry-run] Moving stream %d: %s -> %s',
@@ -123,7 +126,7 @@ class AudioFollowService(ServiceInterface):
                 log.exception('Failed to move stream %d', stream.index)
 
 
-async def run(cfg: 'Config', *, dry_run: bool = False) -> None:
+async def run(cfg: Config, *, dry_run: bool = False) -> None:
     service = AudioFollowService(cfg, dry_run=dry_run)
 
     bus = await MessageBus().connect()

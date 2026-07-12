@@ -66,7 +66,7 @@ def _gen_config(config_path: Path) -> None:
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(config, 'r') as orig, config_path.open('w') as new:
+    with config.open('r') as orig, config_path.open('w') as new:
         new.write(orig.read())
 
 

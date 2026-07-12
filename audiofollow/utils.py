@@ -2,7 +2,7 @@ import asyncio
 import logging
 import contextlib
 import subprocess
-from typing import Sequence
+from typing import Literal, Sequence, overload
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -24,10 +24,54 @@ def setup_logging(*, verbose: bool = False) -> None:
         logging.basicConfig(level=level, format=SIMPLE_LOG_FORMAT)
 
 
+@overload
 async def sp_run(
     cmd: Sequence[str],
     *,
-    capture_output: bool = True,
+    capture_output: Literal[False],
+    check: bool,
+    text: bool,
+    timeout: float | None,
+) -> None: ...
+
+
+@overload
+async def sp_run(
+    cmd: Sequence[str],
+    *,
+    capture_output: Literal[True],
+    check: bool,
+    text: Literal[False],
+    timeout: float | None,
+) -> bytes: ...
+
+
+@overload
+async def sp_run(
+    cmd: Sequence[str],
+    *,
+    capture_output: Literal[True],
+    check: bool,
+    text: Literal[True],
+    timeout: float | None,
+) -> str: ...
+
+
+@overload
+async def sp_run(
+    cmd: Sequence[str],
+    *,
+    capture_output=False,
+    check=True,
+    text=False,
+    timeout: float | None = None,
+) -> None: ...
+
+
+async def sp_run(
+    cmd: Sequence[str],
+    *,
+    capture_output: bool = False,
     check: bool = True,
     text: bool = False,
     timeout: float | None = None,
@@ -48,6 +92,9 @@ async def sp_run(
             await proc.wait()
 
     if check and proc.returncode != 0:
-        raise subprocess.CalledProcessError(proc.returncode, cmd, output=stdout)
+        raise subprocess.CalledProcessError(proc.returncode or 1, cmd, output=stdout)
 
-    return stdout.decode('utf-8') if text and stdout is not None else stdout
+    if capture_output and stdout is not None:
+        return stdout.decode('utf-8') if text else stdout
+
+    return None
