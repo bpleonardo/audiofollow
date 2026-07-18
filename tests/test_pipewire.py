@@ -157,8 +157,26 @@ class PipewireParserTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_list_sinks(self) -> None:
         sinks = await pw.list_sinks()
-        self.assertEqual(sinks['lg tv (hdmi)'], 42)
-        self.assertEqual(sinks['caixa de som'], 55)
+        self.assertEqual(
+            next(
+                (
+                    s.index
+                    for s in sinks
+                    if (s.description or '').lower() == 'lg tv (hdmi)'
+                )
+            ),
+            42,
+        )
+        self.assertEqual(
+            next(
+                (
+                    s.index
+                    for s in sinks
+                    if (s.description or '').lower() == 'caixa de som'
+                )
+            ),
+            55,
+        )
 
     async def test_find_sink_id_exact_and_substring(self) -> None:
         sinks = await pw.list_sinks()
