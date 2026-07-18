@@ -31,12 +31,14 @@ async def _list_sinks() -> None:
 
     console.print(
         "[bold blue]Here's a list of connected sinks. "
-        'You can use either the ID or the description in your config file.[/]\n'
+        'You can use either the ID or the description in your config file.[/]\n',
+        end='',
     )
 
     for name, desc in mapping.items():
         console.print(
-            f'[bold yellow]ID:[/] {name}\n[bold yellow]Description:[/] {desc.capitalize()}\n'
+            f'\n[bold yellow]ID:[/] {name}\n[bold yellow]Description:[/] {desc.capitalize()}',
+            highlight=False,
         )
 
 
