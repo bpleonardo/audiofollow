@@ -32,7 +32,7 @@ select = [
     "E7",
     "E9",
 ]
-ignore = ["S101", "SIM105"]
+ignore = ["S101", "SIM105", "RUF105"]
 preview = true
 
 [lint.flake8-quotes]
