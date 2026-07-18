@@ -1,8 +1,3 @@
-# Keys under `outputs` are KWin/Wayland output names (see
-# `audiofollow list-monitors`). Values are PipeWire sink names (see
-# `audiofollow list-sinks`) - substring match, so "TV" matches a sink
-# whose description is "LG TV (HDMI)".
-
 # Keys are KWin/Wayland output names (see `audiofollow list-monitors`).
 # Values are PipeWire sink names (see `audiofollow list-sinks`) - substring match,
 # so "TV" matches a sink whose description is "LG TV (HDMI)".
@@ -10,6 +5,12 @@
 outputs:
   HDMI-A-1: TV
   DP-1: Speakers
+
+# Keys are PipeWire sink names that won't get switched out when they are active.
+# This is useful for sinks that you want to always use even on monitor changes, like headphones.
+# You can also specify a sink by its name, e.g. "alsa_output.pci-0000_00_1b.0.analog-stereo".
+fixed_sinks:
+  - Headphones
 
 # Keys are KWin/Wayland application names that will be ignored by the application.
 # You can look at the logs to see what the application names are.

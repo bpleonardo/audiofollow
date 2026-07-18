@@ -36,7 +36,7 @@ class AudioFollowService(ServiceInterface):
         self._last_screen: dict[int, str] = {}
 
     @dbus_method()
-    def WindowMoved(self, pid: DBusInt32, screen: DBusStr) -> None:
+    def WindowMoved(self, pid: DBusInt32, screen: DBusStr):  # noqa: ANN201
         pid = int(pid)
         if self._last_screen.get(pid) == screen:
             return
@@ -93,10 +93,22 @@ class AudioFollowService(ServiceInterface):
             log.debug('No active audio stream for %s (pid %d)', name, pid)
             return
 
+        ignored_sinks = {pw.find_sink_id(sinks, s) for s in self.cfg.fixed_sinks}
+        ignored_sinks.discard(None)
+
         sink_name_by_id = {v: k for k, v in sinks.items()}
         for stream in streams:
             if stream.sink == target_id:
                 continue  # already there.
+
+            if stream.sink in ignored_sinks:
+                log.debug(
+                    'Stream %d (%s) is on a fixed sink (%s), ignoring',
+                    stream.index,
+                    stream.app_name,
+                    sink_name_by_id.get(stream.sink or -1, '?'),
+                )
+                continue
 
             log.info(
                 'Window %s moved to %s. (pid: %d, stream: %d)',

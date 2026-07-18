@@ -12,10 +12,11 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class Config:
     outputs: dict[str, str] = field(default_factory=dict)
     ignore: list[str] = field(default_factory=list)
+    fixed_sinks: list[str] = field(default_factory=list)
     debounce_ms: int = 300
 
 
@@ -26,5 +27,6 @@ def load_config(path: Path) -> Config:
     return Config(
         outputs={str(k): str(v) for k, v in (data.get('outputs') or {}).items()},
         ignore=list(data.get('ignore') or []),
+        fixed_sinks=list(data.get('fixed_sinks') or []),
         debounce_ms=int(data.get('debounce_ms', 300)),
     )
