@@ -96,7 +96,7 @@ class AudioFollowService(ServiceInterface):
         ignored_sinks = {pw.find_sink_id(sinks, s) for s in self.cfg.fixed_sinks}
         ignored_sinks.discard(None)
 
-        sink_name_by_id = {v: k for k, v in sinks.items()}
+        sink_name_by_id = {s.index: s.description or s.name for s in sinks}
         for stream in streams:
             if stream.sink == target_id:
                 continue  # already there.

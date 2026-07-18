@@ -25,19 +25,17 @@ DEFAULT_CONFIG = (
 async def _list_sinks() -> None:
     console = Console()
 
-    sinks = tuple((await pw.list_sinks()).keys())
-    # Due to the way we query the sinks, they are returned in pairs of (description, name).
-    mapping = {sinks[i + 1]: sinks[i] for i in range(0, len(sinks), 2)}
-
+    sinks = await pw.list_sinks()
     console.print(
         "[bold blue]Here's a list of connected sinks. "
         'You can use either the ID or the description in your config file.[/]\n',
         end='',
     )
 
-    for name, desc in mapping.items():
+    for sink in sinks:
         console.print(
-            f'\n[bold yellow]ID:[/] {name}\n[bold yellow]Description:[/] {desc.capitalize()}',
+            f'\n[bold yellow]ID:[/] {sink.name}\n'
+            f'[bold yellow]Description:[/] {sink.description if sink.description else ""}',
             highlight=False,
         )
 

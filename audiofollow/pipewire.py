@@ -50,6 +50,13 @@ class Stream:
 
 
 @dataclass(slots=True, frozen=True)
+class Sink:
+    index: int
+    name: str
+    description: str | None
+
+
+@dataclass(slots=True, frozen=True)
 class _ClientInfo:
     pid: int | None
     portal_instance: str | None
@@ -61,29 +68,38 @@ async def _pactl_list(kind: str) -> str:
     )
 
 
-async def list_sinks() -> dict[str, int]:
-    """name/description (lowercased) -> pactl sink index, for every sink."""
+def _get_field(body: str, field: str) -> str | None:
+    m = re.search(rf'^\s*{field}: (.+)$', body, re.MULTILINE)
+    return m.group(1).strip() if m else None
+
+
+async def list_sinks() -> list[Sink]:
+    """List all available sinks."""
     text = await _pactl_list('sinks')
-    sinks: dict[str, int] = {}
+    sinks = []
     for m in re.finditer(
         r'^Sink #(\d+)\n(.*?)(?=^Sink #\d+|\Z)', text, re.MULTILINE | re.DOTALL
     ):
         idx, body = int(m.group(1)), m.group(2)
-        for field in ('Description', 'Name'):
-            fm = re.search(rf'^\s*{field}: (.+)$', body, re.MULTILINE)
-            if fm:
-                sinks[fm.group(1).strip().lower()] = idx
+        sinks.append(
+            Sink(
+                index=idx,
+                name=_get_field(body, 'Name') or '<unknown>',
+                description=_get_field(body, 'Description'),
+            )
+        )
+
     return sinks
 
 
-def find_sink_id(sinks: dict[str, int], configured_name: str) -> int | None:
+def find_sink_id(sinks: list[Sink], configured_name: str) -> int | None:
     """Find a sink index by name or description, case-insensitive."""
     target = configured_name.lower()
-    if target in sinks:
-        return sinks[target]
-    for name, idx in sinks.items():
-        if target in name:
-            return idx
+    for sink in sinks:
+        if target in sink.name.lower() or (
+            sink.description and target in sink.description.lower()
+        ):
+            return sink.index
     return None
 
 
