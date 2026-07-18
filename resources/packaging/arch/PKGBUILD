@@ -1,6 +1,6 @@
 pkgname=audiofollow
 _kwin_id=com.bpleonardo.audiofollow
-pkgver=0.1.0
+pkgver=0.2.0
 pkgrel=1
 pkgdesc="Move app audio to the sink of the monitor its window is on."
 arch=(any)
@@ -12,7 +12,7 @@ depends=(
   libpulse
   python-yaml
   python-rich
-  python-dbus-next
+  python-dbus-fast
 )
 optdepends=(
   "kwin: plasma integration"
@@ -25,8 +25,8 @@ makedepends=(
 )
 install="pacman-hooks.install"
 source=("$pkgname::git+https://github.com/bpleonardo/audiofollow.git#tag=v$pkgver")
-sha256sums=("4e5b29300789a088d83231781eed6732ba0d92de8b2308dfb01d56adb91b3779")
-sha512sums=("d4324de469a7a53ed5252b2b333950a7a98637d4d787c55f007db7eb572fa5af9273674fa24e6751413c7c60a13151bed9920c6347fc75366dd5c1a368a220f8")
+sha256sums=('996621f7f20df01208be0af713d6b6507c29b396596876a394842f3f7eb8f591')
+sha512sums=('e7cb0124fb36c52794b090bba40be5ae57b7a9dc491f0a79b1488842b88347b0c90fc6ff0c8c1ecf6a1aca7f70eb7f9c753b99709f9e8c8afc2d2249c8a31c6a')
 
 build() {
   cd "$pkgname"
