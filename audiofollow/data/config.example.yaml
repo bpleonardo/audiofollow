@@ -1,10 +1,14 @@
-# Keys are KWin/Wayland output names (see `audiofollow list-monitors`).
+# Keys are output names (see `audiofollow list-monitors`).
 # Values are PipeWire sink names (see `audiofollow list-sinks`) - substring match,
 # so "TV" matches a sink whose description is "LG TV (HDMI)".
 # You can also specify a sink by its name, e.g. "alsa_output.pci-0000_00_1b.0.analog-stereo".
+
 outputs:
   HDMI-A-1: TV
   DP-1: Speakers
+# You can also explicitly ignore outputs by setting their value to null (or leaving it empty), for example
+# HDMI-A-2: null
+# DP-2:
 
 # Keys are PipeWire sink names that won't get switched out when they are active.
 # This is useful for sinks that you want to always use even on monitor changes, like headphones.

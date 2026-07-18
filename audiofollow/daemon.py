@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from pathlib import Path
 
 from dbus_fast.aio import MessageBus
@@ -18,6 +18,8 @@ log = logging.getLogger(__name__)
 
 BUS_NAME = 'com.bpleonardo.audiofollow'
 BUS_PATH = '/Daemon'
+
+_MISSING: Any = object()
 
 
 def _app_name(pid: int) -> str:
@@ -70,14 +72,20 @@ class AudioFollowService(ServiceInterface):
         self._timers.pop(pid, None)
 
         if name in self.cfg.ignore:
-            log.debug("Ignoring '%s' (pid %d)", name, pid)
+            log.info("Ignoring '%s' (pid %d)", name, pid)
             return
 
         sink_name = self.cfg.outputs.get(
             screen,
+            _MISSING,
         )
-        if not sink_name:
+
+        if sink_name is _MISSING:
             log.warning("No sink configured for output '%s'", screen)
+            return
+
+        if sink_name is None:
+            log.debug("No sink set for output '%s', ignoring", screen)
             return
 
         try:
