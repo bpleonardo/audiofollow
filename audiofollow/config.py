@@ -21,9 +21,12 @@ class Config:
 
 
 def load_config(path: Path) -> Config:
-    log.debug("Loading config from '%s'", path)
+    """Load configuration from a YAML file."""
 
     data = yaml.safe_load(path.read_text()) or {}
+
+    log.debug("Loading config from '%s' (content: `%s`)", path, data)
+
     return Config(
         outputs={str(k): str(v) for k, v in (data.get('outputs') or {}).items()},
         ignore=list(data.get('ignore') or []),

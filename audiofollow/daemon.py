@@ -39,6 +39,11 @@ class AudioFollowService(ServiceInterface):
     def WindowMoved(self, pid: DBusInt32, screen: DBusStr):  # noqa: ANN201
         pid = int(pid)
         if self._last_screen.get(pid) == screen:
+            log.warning(
+                'Got duplicate window move event for pid %d -> %s, ignoring',
+                pid,
+                screen,
+            )
             return
         self._last_screen[pid] = screen
 
@@ -58,18 +63,21 @@ class AudioFollowService(ServiceInterface):
         )
 
     async def _resolve(self, pid: int, screen: str) -> None:  # noqa: C901
-        log.debug('Resolving window move for pid %d', pid)
-
-        self._timers.pop(pid, None)
         name = _app_name(pid)
 
+        log.debug("Resolving window move for '%s' (pid %d)", name, pid)
+
+        self._timers.pop(pid, None)
+
         if name in self.cfg.ignore:
-            log.debug('Ignoring %s (pid %d)', name, pid)
+            log.debug("Ignoring '%s' (pid %d)", name, pid)
             return
 
-        sink_name = self.cfg.outputs.get(screen)
+        sink_name = self.cfg.outputs.get(
+            screen,
+        )
         if not sink_name:
-            log.warning('No sink configured for output %s', screen)
+            log.warning("No sink configured for output '%s'", screen)
             return
 
         try:
@@ -90,7 +98,7 @@ class AudioFollowService(ServiceInterface):
             return
 
         if not streams:
-            log.debug('No active audio stream for %s (pid %d)', name, pid)
+            log.debug("No active audio stream for '%s' (pid %d)", name, pid)
             return
 
         ignored_sinks = {pw.find_sink_id(sinks, s) for s in self.cfg.fixed_sinks}
@@ -106,32 +114,32 @@ class AudioFollowService(ServiceInterface):
                     'Stream %d (%s) is on a fixed sink (%s), ignoring',
                     stream.index,
                     stream.app_name,
-                    sink_name_by_id.get(stream.sink or -1, '?'),
+                    sink_name_by_id.get(stream.sink or -1, '<unknown>'),
                 )
                 continue
 
             log.info(
-                'Window %s moved to %s. (pid: %d, stream: %d)',
+                "Window '%s' moved to '%s' (pid: %d, stream: %d)",
                 name,
                 screen,
                 pid,
                 stream.index,
             )
 
-            old_sink = '?'
-            if stream.sink:
-                old_sink = sink_name_by_id.get(stream.sink, '?')
+            old_sink = sink_name_by_id.get(stream.sink or -1, '<unknown>')
 
             if self.dry_run:
                 log.info(
-                    '[dry-run] Moving stream %d: %s -> %s',
+                    "[dry-run] Moving stream %d: '%s' -> '%s'",
                     stream.index,
                     old_sink,
                     sink_name,
                 )
                 continue
 
-            log.info('Moving stream %d (%s -> %s)', stream.index, old_sink, sink_name)
+            log.info(
+                "Moving stream %d: '%s' -> '%s'", stream.index, old_sink, sink_name
+            )
             try:
                 await pw.move_stream(stream.index, target_id)
             except Exception:
