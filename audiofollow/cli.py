@@ -69,6 +69,10 @@ def _gen_config(config_path: Path) -> None:
     with config.open('r') as orig, config_path.open('w') as new:
         new.write(orig.read())
 
+    console = Console()
+    console.print('[bold green]Generated default config at:[/]')
+    console.print(f'  [bold yellow]{config_path}[/]')
+
 
 def main() -> None:
     p = argparse.ArgumentParser(prog='audiofollow')
