@@ -57,6 +57,9 @@ class AudioFollowService(ServiceInterface):
                 screen,
             )
             return
+
+        self.cfg.update_if_needed()
+
         self._last_screen[pid] = screen
 
         log.debug('Window moved: pid %d -> %s', pid, screen)
