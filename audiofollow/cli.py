@@ -12,7 +12,7 @@ from rich.console import Console
 
 from . import pipewire as pw
 from .utils import setup_logging
-from .config import load_config
+from .config import Config
 from .daemon import run
 
 DEFAULT_CONFIG = (
@@ -112,7 +112,7 @@ def main() -> None:
             f"No config at '{args.config}'. Run `audiofollow gen-config` to generate one."
         )
 
-    cfg = load_config(args.config)
+    cfg = Config.load_from_file(args.config)
 
     asyncio.run(run(cfg, dry_run=args.dry_run))
 

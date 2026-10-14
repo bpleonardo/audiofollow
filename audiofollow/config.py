@@ -12,6 +12,18 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
+def _parse_config(data: dict) -> dict:
+    return {
+        'outputs': {
+            str(k): str(v) if v is not None else None
+            for k, v in (data.get('outputs') or {}).items()
+        },
+        'ignore': list(data.get('ignore') or []),
+        'fixed_sinks': list(data.get('fixed_sinks') or []),
+        'debounce_ms': int(data.get('debounce_ms', 300)),
+    }
+
+
 @dataclass(slots=True)
 class Config:
     outputs: dict[str, str | None] = field(default_factory=dict)
@@ -28,15 +40,9 @@ class Config:
 
         log.debug("Loading config from '%s' (content: `%s`)", path, data)
 
-        instance = cls(
-            outputs={
-                str(k): str(v) if v is not None else None
-                for k, v in (data.get('outputs') or {}).items()
-            },
-            ignore=list(data.get('ignore') or []),
-            fixed_sinks=list(data.get('fixed_sinks') or []),
-            debounce_ms=int(data.get('debounce_ms', 300)),
-        )
+        parsed_data = _parse_config(data)
+
+        instance = cls(**parsed_data)
         instance._mtime = path.stat().st_mtime
         instance._path = path
         return instance
@@ -49,27 +55,9 @@ class Config:
         mtime = self._path.stat().st_mtime
         if self._mtime is None or mtime > self._mtime:
             log.info("Config file '%s' changed, reloading", self._path)
-            new_config = Config.load_from_file(self._path)
-            self.outputs = new_config.outputs
-            self.ignore = new_config.ignore
-            self.fixed_sinks = new_config.fixed_sinks
-            self.debounce_ms = new_config.debounce_ms
+            parsed_data = _parse_config(yaml.safe_load(self._path.read_text()) or {})
+            self.outputs = parsed_data['outputs']
+            self.ignore = parsed_data['ignore']
+            self.fixed_sinks = parsed_data['fixed_sinks']
+            self.debounce_ms = parsed_data['debounce_ms']
             self._mtime = mtime
-
-
-def load_config(path: Path) -> Config:
-    """Load configuration from a YAML file."""
-
-    data = yaml.safe_load(path.read_text()) or {}
-
-    log.debug("Loading config from '%s' (content: `%s`)", path, data)
-
-    return Config(
-        outputs={
-            str(k): str(v) if v is not None else None
-            for k, v in (data.get('outputs') or {}).items()
-        },
-        ignore=list(data.get('ignore') or []),
-        fixed_sinks=list(data.get('fixed_sinks') or []),
-        debounce_ms=int(data.get('debounce_ms', 300)),
-    )
