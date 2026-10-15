@@ -100,7 +100,7 @@ class AudioFollowService(ServiceInterface):
             self._timers.pop(pid, None)
 
             if name in self.cfg.ignore:
-                log.info("Ignoring '%s' (pid %d)", name, pid)
+                log.debug("Ignoring '%s' (pid %d)", name, pid)
                 return
 
             sink_name = self.cfg.outputs.get(
