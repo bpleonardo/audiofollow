@@ -29,7 +29,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }, "audiofollow"]
-test = ["pytest"]
+test = []
 lint = ["ruff", "pyright"]
 
 [tool.hatch.build.targets.wheel]
