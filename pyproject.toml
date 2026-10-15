@@ -5,7 +5,12 @@ readme = "README.md"
 author = ["bpleonardo @ github"]
 license = "BSD-3-Clause"
 requires-python = ">=3.11"
-dependencies = ["PyYAML>=6.0", "dbus-fast>=5.0.0", "rich>=15.0.0"]
+dependencies = [
+    "PyYAML>=6.0",
+    "dbus-fast>=5.0.0",
+    "pyright>=1.1.414",
+    "rich>=15.0.0",
+]
 dynamic = ["version"]
 
 [project.urls]
@@ -24,7 +29,8 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }, "audiofollow"]
-lint = ["ruff", "ty"]
+test = ["pytest"]
+lint = ["ruff", "pyright"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["audiofollow"]
